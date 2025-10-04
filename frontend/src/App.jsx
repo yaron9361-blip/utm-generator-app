@@ -32,6 +32,13 @@ function App() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    if (name === 'original_url') {
+      // Проверяем есть ли протокол в ссылке
+      const hasProtocol = value.match(/^https?:\/\//i);
+      setShowProtocol(!hasProtocol);
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -53,7 +60,12 @@ function App() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(formData),
+      body: JSON.stringify({
+        ...formData,
+        original_url: formData.original_url.startsWith('http') 
+          ? formData.original_url 
+          : formData.protocol + formData.original_url
+    }),
       signal: controller.signal
     });
 
@@ -102,15 +114,17 @@ function App() {
     });
   };
 
-  const resetForm = () => {
-    setFormData({
-      original_url: '',
-      utm_source: '',
-      utm_medium: '',
-      utm_campaign: '',
-      utm_term: '',
-      utm_content: '',
-    });
+  const [formData, setFormData] = useState({
+    protocol: 'https://',
+    original_url: '',
+    utm_source: '',
+    utm_medium: '',
+    utm_campaign: '',
+    utm_term: '',
+    utm_content: '',
+  });
+
+const [showProtocol, setShowProtocol] = useState(true);
     setResult(null);
     setError(null);
   };
@@ -127,15 +141,29 @@ function App() {
           <form className="form" onSubmit={handleSubmit}>
             <div className="form-group">
               <label htmlFor="original_url">Ссылка *</label>
-              <input
-                type="url"
-                id="original_url"
-                name="original_url"
-                value={formData.original_url}
-                onChange={handleInputChange}
-                placeholder="https://example.com"
-                required
-              />
+              <div className="url-input-wrapper">
+                {showProtocol && (
+                  <select 
+                    name="protocol"
+                    value={formData.protocol}
+                    onChange={handleInputChange}
+                    className="protocol-select"
+                  >
+                    <option value="https://">https://</option>
+                    <option value="http://">http://</option>
+                  </select>
+                )}
+                <input
+                  type="text"
+                  id="original_url"
+                  name="original_url"
+                  value={formData.original_url}
+                  onChange={handleInputChange}
+                  placeholder="example.com"
+                  required
+                  className={showProtocol ? 'with-protocol' : ''}
+                />
+              </div>
             </div>
 
             <div className="form-group">
