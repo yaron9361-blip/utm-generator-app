@@ -13,7 +13,11 @@ app.use(helmet());
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: [
+    'http://localhost:5173',
+    'https://utm-generator-app-yaron9361-blips-projects.vercel.app', // твой URL с Vercel
+    /\.vercel\.app$/ // разрешить все поддомены vercel.app
+  ],
   credentials: true
 }));
 
