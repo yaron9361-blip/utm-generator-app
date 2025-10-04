@@ -39,40 +39,52 @@ function App() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setResult(null);
+  e.preventDefault();
+  setLoading(true);
+  setError('Загрузка... Первый запрос может занять до минуты');
+  setResult(null);
 
-    try {
-      const response = await fetch('http://localhost:3001/api/utm/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 65000); // 65 секунд
 
-      const data = await response.json();
+  try {
+    const response = await fetch('https://utm-backend-he2r.onrender.com/api/utm/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+      signal: controller.signal
+    });
 
-      if (response.ok && data.success) {
-        setResult(data.data);
-        
-        // Вибрация при успехе (если в Telegram)
-        if (window.Telegram?.WebApp) {
-          window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-        }
-      } else {
-        throw new Error(data.error || 'Ошибка создания UTM-метки');
+    clearTimeout(timeoutId);
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      setResult(data.data);
+      setError(null);
+      
+      // Вибрация при успехе (если в Telegram)
+      if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
       }
+    } else {
+      throw new Error(data.error || 'Ошибка создания UTM-метки');
+    }
     } catch (err) {
-      setError(err.message);
+      if (err.name === 'AbortError') {
+        setError('Превышено время ожидания. Сервер запускается слишком долго, попробуйте ещё раз через 10 секунд.');
+      } else {
+        setError(err.message);
+      }
       
       // Вибрация при ошибке
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
       }
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };
