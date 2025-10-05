@@ -281,6 +281,56 @@ input:focus, select:focus {
   color: var(--text);
 }
 
+/* Кнопка копирования для полной ссылки - на всю ширину */
+.btn-copy-full {
+  width: 100%;
+  padding: 14px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-copy-full:active {
+  transform: scale(0.98);
+}
+
+/* Кнопка копирования для короткой ссылки - справа инлайн */
+.btn-copy-inline {
+  flex-shrink: 0;
+  padding: 14px 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.btn-copy-inline:active {
+  transform: scale(0.95);
+}
+
+/* Обёртка для короткой ссылки с кнопкой справа */
+.result-short-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.result-short-wrapper .result-url {
+  flex: 1;
+  margin-bottom: 0;
+  font-size: 15px;
+}
+
 .result-card {
   background: var(--surface);
   border-radius: 16px;
