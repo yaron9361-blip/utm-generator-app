@@ -50,7 +50,7 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('Загрузка... Первый запрос может занять до минуты');
+    setError(null);
     setResult(null);
 
     const controller = new AbortController();
