@@ -13,7 +13,6 @@ function App() {
     utm_content: '',
   });
 
-  const [showProtocol, setShowProtocol] = useState(true);
   const [showTemplates, setShowTemplates] = useState(false);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -37,8 +36,13 @@ function App() {
     const { name, value } = e.target;
     
     if (name === 'original_url') {
-      const hasProtocol = value.match(/^https?:\/\//i);
-      setShowProtocol(!hasProtocol);
+      // Удаляем протокол если пользователь его вставил
+      const cleanValue = value.replace(/^https?:\/\//i, '');
+      setFormData(prev => ({
+        ...prev,
+        [name]: cleanValue
+      }));
+      return;
     }
     
     setFormData(prev => ({
@@ -136,7 +140,6 @@ function App() {
       utm_term: '',
       utm_content: '',
     });
-    setShowProtocol(true);
     setResult(null);
     setError(null);
   };
@@ -179,8 +182,7 @@ function App() {
             <div className="form-group">
               <label htmlFor="original_url">Ссылка *</label>
               <div className="url-input-wrapper">
-                {showProtocol && (
-                  <select 
+                <select 
                     name="protocol"
                     value={formData.protocol}
                     onChange={handleInputChange}
@@ -189,7 +191,6 @@ function App() {
                     <option value="https://">https://</option>
                     <option value="http://">http://</option>
                   </select>
-                )}
                 <input
                   type="text"
                   id="original_url"
@@ -198,7 +199,6 @@ function App() {
                   onChange={handleInputChange}
                   placeholder="your-site.com/promo"
                   required
-                  className={showProtocol ? 'with-protocol' : ''}
                 />
               </div>
             </div>
