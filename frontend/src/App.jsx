@@ -25,29 +25,27 @@ function App() {
   }, []);
 
   const handleInputChange = (e) => {
-  const { name, value } = e.target;
-  
-  if (name === 'original_url') {
-    // Определяем протокол из вставленной ссылки
-    const httpMatch = value.match(/^(https?):\/\//i);
+    const { name, value } = e.target;
     
-    if (httpMatch) {
-      const detectedProtocol = httpMatch[1].toLowerCase() + '://';
-      const cleanValue = value.replace(/^https?:\/\//i, '');
+    if (name === 'original_url') {
+      const httpMatch = value.match(/^(https?):\/\//i);
       
-      setFormData(prev => ({
-        ...prev,
-        protocol: detectedProtocol,
-        [name]: cleanValue
-      }));
+      if (httpMatch) {
+        const detectedProtocol = httpMatch[1].toLowerCase() + '://';
+        const cleanValue = value.replace(/^https?:\/\//i, '');
+        
+        setFormData(prev => ({
+          ...prev,
+          protocol: detectedProtocol,
+          [name]: cleanValue
+        }));
+        return;
+      }
+      
+      setFormData(prev => ({ ...prev, [name]: value }));
       return;
     }
     
-    // Если протокола нет, просто сохраняем значение
-    setFormData(prev => ({ ...prev, [name]: value }));
-    return;
-  }
-  
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -103,139 +101,121 @@ function App() {
     });
   };
 
-  const shareToTelegram = () => {
-    if (window.Telegram?.WebApp && result) {
-      const text = `Моя UTM-ссылка:\n${result.short_url}`;
-      window.Telegram.WebApp.shareMessage(text);
+  const downloadQRCode = async (qrUrl) => {
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = qrUrl;
+      });
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      
+      canvas.toBlob(async (blob) => {
+        if (window.Telegram?.WebApp) {
+          const blobUrl = URL.createObjectURL(blob);
+          
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = `utm-qr-${Date.now()}.png`;
+          
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+          
+          window.Telegram.WebApp.showPopup({
+            message: 'QR-код сохранён. Проверьте загрузки или галерею.'
+          });
+          window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+        } else {
+          const blobUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = `utm-qr-${Date.now()}.png`;
+          link.click();
+          URL.revokeObjectURL(blobUrl);
+        }
+      }, 'image/png');
+      
+    } catch (error) {
+      console.error('Download failed:', error);
+      if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.showAlert('Не удалось сохранить. Сделайте скриншот QR-кода.');
+      }
     }
   };
 
-const downloadQRCode = async (qrUrl) => {
-  try {
-    // Создаём canvas и рисуем изображение
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = qrUrl;
-    });
-    
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    
-    // Конвертируем в blob
-    canvas.toBlob(async (blob) => {
-      // Telegram WebApp специфичная логика
-      if (window.Telegram?.WebApp) {
-        // Пробуем использовать downloadFile если доступен
-        const blobUrl = URL.createObjectURL(blob);
-        
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = `utm-qr-${Date.now()}.png`;
-        
-        // Для мобильных - trigger через user interaction
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-        
-        window.Telegram.WebApp.showPopup({
-          message: 'QR-код сохранён. Проверьте загрузки или галерею.'
-        });
-        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-      } else {
-        // Для обычного браузера
-        const blobUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = `utm-qr-${Date.now()}.png`;
-        link.click();
-        URL.revokeObjectURL(blobUrl);
-      }
-    }, 'image/png');
-    
-  } catch (error) {
-    console.error('Download failed:', error);
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.showAlert('Не удалось сохранить. Сделайте скриншот QR-кода.');
-    }
-  }
-};
-
-const shareQRCode = async (qrUrl) => {
-  try {
-    // Создаём изображение через canvas
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = qrUrl;
-    });
-    
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    
-    // Конвертируем в blob
-    const blob = await new Promise(resolve => {
-      canvas.toBlob(resolve, 'image/png');
-    });
-    
-    const file = new File([blob], 'utm-qrcode.png', { type: 'image/png' });
-    
-    // Проверяем Web Share API
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        files: [file],
-        title: 'UTM QR-код'
+  const shareQRCode = async (qrUrl) => {
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = qrUrl;
       });
       
-      if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      
+      const blob = await new Promise(resolve => {
+        canvas.toBlob(resolve, 'image/png');
+      });
+      
+      const file = new File([blob], 'utm-qrcode.png', { type: 'image/png' });
+      
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'UTM QR-код'
+        });
+        
+        if (window.Telegram?.WebApp) {
+          window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+        }
+      } else {
+        if (window.Telegram?.WebApp) {
+          window.Telegram.WebApp.showPopup({
+            message: 'Отправка недоступна. QR-код будет сохранён - отправьте его из галереи.',
+            buttons: [{type: 'ok'}]
+          });
+        }
+        
+        await downloadQRCode(qrUrl);
       }
-    } else {
-      // Fallback - показываем сообщение и сохраняем
+      
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        return;
+      }
+      
+      console.error('Share failed:', error);
+      
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.showPopup({
-          message: 'Отправка недоступна. QR-код будет сохранён - отправьте его из галереи.',
+          message: 'Не удалось отправить. QR-код будет сохранён.',
           buttons: [{type: 'ok'}]
         });
       }
       
       await downloadQRCode(qrUrl);
     }
-    
-  } catch (error) {
-    // AbortError = пользователь отменил
-    if (error.name === 'AbortError') {
-      return;
-    }
-    
-    console.error('Share failed:', error);
-    
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.showPopup({
-        message: 'Не удалось отправить. QR-код будет сохранён.',
-        buttons: [{type: 'ok'}]
-      });
-    }
-    
-    await downloadQRCode(qrUrl);
-  }
-};
+  };
 
   const reset = () => {
     setFormData({
@@ -260,7 +240,7 @@ const shareQRCode = async (qrUrl) => {
             </div>
 
             <div className="templates-container">
-            <div className="templates-scroll">
+              <div className="templates-scroll">
                 {utmTemplates.map(t => (
                   <button 
                     key={t.id}
@@ -353,7 +333,6 @@ const shareQRCode = async (qrUrl) => {
               <button className="btn-reset" onClick={reset}>Создать ещё</button>
             </div>
 
-            {/* ПОЛНАЯ ССЫЛКА - теперь первая и всегда открыта */}
             <div className="result-card">
               <div className="result-label">Полная ссылка</div>
               <div className="result-url">{result.full_url}</div>
@@ -365,7 +344,6 @@ const shareQRCode = async (qrUrl) => {
               </button>
             </div>
 
-            {/* КОРОТКАЯ ССЫЛКА - теперь вторая, кнопка справа */}
             <div className="result-card result-card-short">
               <div className="result-label">Короткая ссылка</div>
               <div className="result-short-wrapper">
@@ -379,7 +357,6 @@ const shareQRCode = async (qrUrl) => {
               </div>
             </div>
 
-            {/* QR-КОД */}
             {result.qr_code && (
               <div className="result-card qr-card">
                 <div className="result-label">QR-код</div>
@@ -403,6 +380,9 @@ const shareQRCode = async (qrUrl) => {
               </div>
             )}
           </div>
+        )}
+      </div>
+    </div>
   );
 }
 
