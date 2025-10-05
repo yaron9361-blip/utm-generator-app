@@ -14,6 +14,7 @@ function App() {
   });
 
   const [showProtocol, setShowProtocol] = useState(true);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -25,7 +26,6 @@ function App() {
       tg.ready();
       tg.expand();
       
-      // Применяем тему Telegram
       document.documentElement.style.setProperty('--tg-theme-bg-color', tg.backgroundColor);
       document.documentElement.style.setProperty('--tg-theme-text-color', tg.textColor);
       document.documentElement.style.setProperty('--tg-theme-button-color', tg.buttonColor);
@@ -37,10 +37,8 @@ function App() {
     const { name, value } = e.target;
     
     if (name === 'original_url') {
-      // Проверяем есть ли протокол в ссылке
       const hasProtocol = value.match(/^https?:\/\//i);
       setShowProtocol(!hasProtocol);
-      const [showTemplates, setShowTemplates] = useState(false);
     }
     
     setFormData(prev => ({
@@ -50,16 +48,16 @@ function App() {
   };
 
   const applyTemplate = (template) => {
-  setFormData(prev => ({
-    ...prev,
-    ...template.params
-  }));
-  setShowTemplates(false);
-  
-  if (window.Telegram?.WebApp) {
-    window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-  }
-};
+    setFormData(prev => ({
+      ...prev,
+      ...template.params
+    }));
+    setShowTemplates(false);
+    
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -101,7 +99,7 @@ function App() {
       }
     } catch (err) {
       if (err.name === 'AbortError') {
-        setError('Превышено время ожидания. Сервер запускается слишком долго, попробуйте ещё раз через 10 секунд.');
+        setError('Превышено время ожидания. Попробуйте ещё раз.');
       } else {
         setError(err.message);
       }
@@ -119,7 +117,7 @@ function App() {
     navigator.clipboard.writeText(text).then(() => {
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.showPopup({
-          message: 'Скопировано в буфер обмена!',
+          message: 'Скопировано!',
         });
         window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
       } else {
@@ -149,31 +147,32 @@ function App() {
         <header className="header">
           <h1>⚡️ Быстрые UTM-метки</h1>
           <p>Создай за 15 секунд</p>
-          {!result && (
-            <button 
-              type="button"
-              className="btn btn-templates"
-              onClick={() => setShowTemplates(!showTemplates)}
-            >
-              📋 {showTemplates ? 'Скрыть шаблоны' : 'Выбрать из шаблона'}
-            </button>
-          )}
-
-          {showTemplates && !result && (
-            <div className="templates-grid">
-              {utmTemplates.map(template => (
-                <div 
-                  key={template.id}
-                  className="template-card"
-                  onClick={() => applyTemplate(template)}
-                >
-                  <span className="template-icon">{template.icon}</span>
-                  <span className="template-name">{template.name}</span>
-                </div>
-              ))}
-            </div>
-          )}
         </header>
+
+        {!result && (
+          <button 
+            type="button"
+            className="btn btn-templates"
+            onClick={() => setShowTemplates(!showTemplates)}
+          >
+            📋 {showTemplates ? 'Скрыть шаблоны' : 'Выбрать из шаблона'}
+          </button>
+        )}
+
+        {showTemplates && !result && (
+          <div className="templates-grid">
+            {utmTemplates.map(template => (
+              <div 
+                key={template.id}
+                className="template-card"
+                onClick={() => applyTemplate(template)}
+              >
+                <span className="template-icon">{template.icon}</span>
+                <span className="template-name">{template.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {!result ? (
           <form className="form" onSubmit={handleSubmit}>
@@ -197,7 +196,7 @@ function App() {
                   name="original_url"
                   value={formData.original_url}
                   onChange={handleInputChange}
-                  placeholder="example.com"
+                  placeholder="your-site.com/promo"
                   required
                   className={showProtocol ? 'with-protocol' : ''}
                 />
@@ -212,7 +211,7 @@ function App() {
                 name="utm_source"
                 value={formData.utm_source}
                 onChange={handleInputChange}
-                placeholder="telegram, instagram, email"
+                placeholder="telegram, instagram, vk"
                 required
               />
             </div>
@@ -225,7 +224,7 @@ function App() {
                 name="utm_medium"
                 value={formData.utm_medium}
                 onChange={handleInputChange}
-                placeholder="social, cpc, email"
+                placeholder="stories, post, ad"
                 required
               />
             </div>
@@ -238,7 +237,7 @@ function App() {
                 name="utm_campaign"
                 value={formData.utm_campaign}
                 onChange={handleInputChange}
-                placeholder="spring_sale"
+                placeholder="black_friday, new_product"
                 required
               />
             </div>
