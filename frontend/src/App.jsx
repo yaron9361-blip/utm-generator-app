@@ -25,14 +25,29 @@ function App() {
   }, []);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const { name, value } = e.target;
+  
+  if (name === 'original_url') {
+    // Определяем протокол из вставленной ссылки
+    const httpMatch = value.match(/^(https?):\/\//i);
     
-    if (name === 'original_url') {
+    if (httpMatch) {
+      const detectedProtocol = httpMatch[1].toLowerCase() + '://';
       const cleanValue = value.replace(/^https?:\/\//i, '');
-      setFormData(prev => ({ ...prev, [name]: cleanValue }));
+      
+      setFormData(prev => ({
+        ...prev,
+        protocol: detectedProtocol,
+        [name]: cleanValue
+      }));
       return;
     }
     
+    // Если протокола нет, просто сохраняем значение
+    setFormData(prev => ({ ...prev, [name]: value }));
+    return;
+  }
+  
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
