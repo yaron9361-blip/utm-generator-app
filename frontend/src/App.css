@@ -306,61 +306,13 @@ input:focus, select:focus {
   margin-bottom: 16px;
 }
 
-.result-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.btn-copy-full {
-  width: 100%;
-  padding: 14px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-copy-full:active {
-  transform: scale(0.95);
-}
-
-.btn-copy, .btn-share {
-  padding: 14px;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-}
-
-.btn-copy {
-  background: var(--primary);
-  color: white;
-}
-
-.btn-share {
-  background: var(--surface);
-  color: var(--text);
-  border: 2px solid var(--border);
-}
-
-.btn-copy:active, .btn-share:active {
-  transform: scale(0.95);
-}
-
 .result-card-short {
   margin-bottom: 16px;
 }
 
 .result-short-wrapper {
   display: flex;
-  align-items: flex-start;
+  align-items: center;  /* центрирование по вертикали */
   gap: 12px;
 }
 
@@ -368,25 +320,6 @@ input:focus, select:focus {
   flex: 1;
   margin-bottom: 0;
   font-size: 15px;
-}
-
-.btn-copy-inline {
-  flex-shrink: 0;
-  padding: 12px 16px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s;
-  min-height: 44px;
-}
-
-.btn-copy-inline:active {
-  transform: scale(0.95);
 }
 
 .result-details {
@@ -413,18 +346,6 @@ input:focus, select:focus {
   line-height: 1.5;
 }
 
-.btn-copy-small {
-  width: 100%;
-  padding: 10px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
 .qr-card {
   margin-bottom: 16px;
 }
@@ -432,14 +353,15 @@ input:focus, select:focus {
 .qr-image-wrapper {
   display: flex;
   justify-content: center;
-  padding: 20px 0;
+  padding: 12px 0 20px 0;  /* уменьшили отступ сверху */
 }
 
 .qr-hint {
   font-size: 12px;
   color: var(--text-secondary);
   text-align: center;
-  margin-top: 8px;
+  margin: 8px 0 12px 0;
+  line-height: 1.4;
 }
 
 .qr-image {
@@ -450,10 +372,7 @@ input:focus, select:focus {
   background: white;
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  user-select: none;
-  -webkit-user-select: none;
-  pointer-events: auto;  /* разрешаем взаимодействие */
-  -webkit-touch-callout: default;  /* разрешаем контекстное меню на iOS */
+  -webkit-touch-callout: default;
 }
 
 @media (prefers-color-scheme: dark) {

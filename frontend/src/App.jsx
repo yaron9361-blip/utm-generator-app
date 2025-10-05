@@ -360,23 +360,9 @@ function App() {
             {result.qr_code && (
               <div className="result-card qr-card">
                 <div className="result-label">QR-код</div>
+                <p className="qr-hint">Долгое нажатие → Сохранить изображение</p>
                 <div className="qr-image-wrapper">
                   <img src={result.qr_code} alt="QR Code" className="qr-image" />
-                  <p className="qr-hint">Долгое нажатие → Сохранить изображение</p>
-                </div>
-                <div className="result-actions">
-                  <button 
-                    className="btn-copy"
-                    onClick={() => downloadQRCode(result.qr_code)}
-                  >
-                    Сохранить
-                  </button>
-                  <button 
-                    className="btn-share"
-                    onClick={() => shareQRCode(result.qr_code)}
-                  >
-                    Отправить
-                  </button>
                 </div>
               </div>
             )}
