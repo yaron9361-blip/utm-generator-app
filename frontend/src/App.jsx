@@ -57,7 +57,7 @@ function App() {
     const timeoutId = setTimeout(() => controller.abort(), 65000);
 
     try {
-      const response = await fetch('https://utm-backend-he2r.onrender.com/api/utm/generate', {
+      const response = await fetch('https://utm-backend-1.onrender.com/api/utm/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
