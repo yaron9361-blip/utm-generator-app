@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './App.css';
+import { utmTemplates } from './utmTemplates';
 
 function App() {
   const [formData, setFormData] = useState({
@@ -39,6 +40,7 @@ function App() {
       // Проверяем есть ли протокол в ссылке
       const hasProtocol = value.match(/^https?:\/\//i);
       setShowProtocol(!hasProtocol);
+      const [showTemplates, setShowTemplates] = useState(false);
     }
     
     setFormData(prev => ({
@@ -46,6 +48,18 @@ function App() {
       [name]: value
     }));
   };
+
+  const applyTemplate = (template) => {
+  setFormData(prev => ({
+    ...prev,
+    ...template.params
+  }));
+  setShowTemplates(false);
+  
+  if (window.Telegram?.WebApp) {
+    window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+  }
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -133,8 +147,32 @@ function App() {
     <div className="app">
       <div className="container">
         <header className="header">
-          <h1>🔗 UTM Generator</h1>
-          <p>Создай UTM-метку за 30 секунд</p>
+          <h1>⚡️ Быстрые UTM-метки</h1>
+          <p>Создай за 15 секунд</p>
+          {!result && (
+            <button 
+              type="button"
+              className="btn btn-templates"
+              onClick={() => setShowTemplates(!showTemplates)}
+            >
+              📋 {showTemplates ? 'Скрыть шаблоны' : 'Выбрать из шаблона'}
+            </button>
+          )}
+
+          {showTemplates && !result && (
+            <div className="templates-grid">
+              {utmTemplates.map(template => (
+                <div 
+                  key={template.id}
+                  className="template-card"
+                  onClick={() => applyTemplate(template)}
+                >
+                  <span className="template-icon">{template.icon}</span>
+                  <span className="template-name">{template.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </header>
 
         {!result ? (
