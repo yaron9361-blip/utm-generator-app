@@ -259,18 +259,23 @@ const shareQRCode = async (qrUrl) => {
               <p>Шаблоны для популярных платформ</p>
             </div>
 
-            <div className="templates">
-              {utmTemplates.slice(0, 6).map(t => (
-                <button 
-                  key={t.id}
-                  className="template-btn"
-                  onClick={() => applyTemplate(t)}
-                  type="button"
-                >
-                  <span className="template-icon">{t.icon}</span>
-                  <span className="template-text">{t.name}</span>
-                </button>
-              ))}
+            <div className="templates-container">
+            <div className="templates-scroll">
+                {utmTemplates.map(t => (
+                  <button 
+                    key={t.id}
+                    className="template-card-large"
+                    onClick={() => applyTemplate(t)}
+                    type="button"
+                  >
+                    <div className="template-icon-large">{t.icon}</div>
+                    <div className="template-info">
+                      <div className="template-platform">{t.category}</div>
+                      <div className="template-format">{t.name}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <form onSubmit={handleSubmit} className="form">
@@ -348,35 +353,33 @@ const shareQRCode = async (qrUrl) => {
               <button className="btn-reset" onClick={reset}>Создать ещё</button>
             </div>
 
+            {/* ПОЛНАЯ ССЫЛКА - теперь первая и всегда открыта */}
             <div className="result-card">
-              <div className="result-label">Короткая ссылка</div>
-              <div className="result-url">{result.short_url}</div>
-              <div className="result-actions">
-                <button 
-                  className="btn-copy"
-                  onClick={() => copyToClipboard(result.short_url)}
-                >
-                  {copied ? '✓ Скопировано' : 'Копировать'}
-                </button>
-                <button 
-                  className="btn-share"
-                  onClick={shareToTelegram}
-                >
-                  Отправить
-                </button>
-              </div>
-            </div>
-
-            <details className="result-details">
-              <summary>Полная ссылка</summary>
-              <div className="result-full">{result.full_url}</div>
+              <div className="result-label">Полная ссылка</div>
+              <div className="result-url">{result.full_url}</div>
               <button 
-                className="btn-copy-small"
+                className="btn-copy-full"
                 onClick={() => copyToClipboard(result.full_url)}
               >
                 Копировать
               </button>
-            </details>
+            </div>
+
+            {/* КОРОТКАЯ ССЫЛКА - теперь вторая, кнопка справа */}
+            <div className="result-card result-card-short">
+              <div className="result-label">Короткая ссылка</div>
+              <div className="result-short-wrapper">
+                <div className="result-url">{result.short_url}</div>
+                <button 
+                  className="btn-copy-inline"
+                  onClick={() => copyToClipboard(result.short_url)}
+                >
+                  Копировать
+                </button>
+              </div>
+            </div>
+
+            {/* QR-КОД */}
             {result.qr_code && (
               <div className="result-card qr-card">
                 <div className="result-label">QR-код</div>
@@ -398,11 +401,8 @@ const shareQRCode = async (qrUrl) => {
                   </button>
                 </div>
               </div>
-)}
+            )}
           </div>
-        )}
-      </div>
-    </div>
   );
 }
 
