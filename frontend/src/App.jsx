@@ -3,6 +3,7 @@ import './App.css';
 
 function App() {
   const [formData, setFormData] = useState({
+    protocol: 'https://',
     original_url: '',
     utm_source: '',
     utm_medium: '',
@@ -11,6 +12,7 @@ function App() {
     utm_content: '',
   });
 
+  const [showProtocol, setShowProtocol] = useState(true);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -46,44 +48,43 @@ function App() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError('Загрузка... Первый запрос может занять до минуты');
-  setResult(null);
+    e.preventDefault();
+    setLoading(true);
+    setError('Загрузка... Первый запрос может занять до минуты');
+    setResult(null);
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 65000); // 65 секунд
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 65000);
 
-  try {
-    const response = await fetch('https://utm-backend-he2r.onrender.com/api/utm/generate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ...formData,
-        original_url: formData.original_url.startsWith('http') 
-          ? formData.original_url 
-          : formData.protocol + formData.original_url
-    }),
-      signal: controller.signal
-    });
+    try {
+      const response = await fetch('https://utm-backend-he2r.onrender.com/api/utm/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          original_url: formData.original_url.startsWith('http') 
+            ? formData.original_url 
+            : formData.protocol + formData.original_url
+        }),
+        signal: controller.signal
+      });
 
-    clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (response.ok && data.success) {
-      setResult(data.data);
-      setError(null);
-      
-      // Вибрация при успехе (если в Telegram)
-      if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+      if (response.ok && data.success) {
+        setResult(data.data);
+        setError(null);
+        
+        if (window.Telegram?.WebApp) {
+          window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+        }
+      } else {
+        throw new Error(data.error || 'Ошибка создания UTM-метки');
       }
-    } else {
-      throw new Error(data.error || 'Ошибка создания UTM-метки');
-    }
     } catch (err) {
       if (err.name === 'AbortError') {
         setError('Превышено время ожидания. Сервер запускается слишком долго, попробуйте ещё раз через 10 секунд.');
@@ -91,7 +92,6 @@ function App() {
         setError(err.message);
       }
       
-      // Вибрация при ошибке
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
       }
@@ -114,17 +114,17 @@ function App() {
     });
   };
 
-  const [formData, setFormData] = useState({
-    protocol: 'https://',
-    original_url: '',
-    utm_source: '',
-    utm_medium: '',
-    utm_campaign: '',
-    utm_term: '',
-    utm_content: '',
-  });
-
-const [showProtocol, setShowProtocol] = useState(true);
+  const resetForm = () => {
+    setFormData({
+      protocol: 'https://',
+      original_url: '',
+      utm_source: '',
+      utm_medium: '',
+      utm_campaign: '',
+      utm_term: '',
+      utm_content: '',
+    });
+    setShowProtocol(true);
     setResult(null);
     setError(null);
   };
@@ -235,7 +235,7 @@ const [showProtocol, setShowProtocol] = useState(true);
 
             {error && (
               <div className="error">
-                ⚠️ {error}
+                {error}
               </div>
             )}
 
