@@ -362,6 +362,7 @@ function App() {
                 <div className="result-label">QR-код</div>
                 <div className="qr-image-wrapper">
                   <img src={result.qr_code} alt="QR Code" className="qr-image" />
+                  <p className="qr-hint">Долгое нажатие → Сохранить изображение</p>
                 </div>
                 <div className="result-actions">
                   <button 
