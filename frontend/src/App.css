@@ -313,3 +313,29 @@ input:focus, select:focus {
   font-weight: 600;
   cursor: pointer;
 }
+
+.qr-card {
+  margin-top: 16px;
+}
+
+.qr-image-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.qr-image {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  border-radius: 12px;
+  background: white;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  .qr-image {
+    background: #ffffff;
+  }
+}

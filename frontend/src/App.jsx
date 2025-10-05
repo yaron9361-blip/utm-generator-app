@@ -110,6 +110,54 @@ function App() {
     }
   };
 
+  const downloadQRCode = (qrUrl) => {
+  const link = document.createElement('a');
+  link.href = qrUrl;
+  link.download = `utm-qrcode-${Date.now()}.png`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  if (window.Telegram?.WebApp) {
+    window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+  }
+};
+
+const shareQRCode = async (qrUrl) => {
+  try {
+    // Получаем blob изображения
+    const response = await fetch(qrUrl);
+    const blob = await response.blob();
+    const file = new File([blob], 'utm-qrcode.png', { type: 'image/png' });
+    
+    // Web Share API (работает на мобильных)
+    if (navigator.share && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: 'UTM QR-код',
+        text: 'QR-код для моей UTM-ссылки'
+      });
+      
+      if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+      }
+    } else {
+      // Fallback для десктопа - скачиваем
+      downloadQRCode(qrUrl);
+      
+      if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.showAlert('QR-код сохранён. Откройте галерею для отправки.');
+      } else {
+        alert('QR-код сохранён');
+      }
+    }
+  } catch (error) {
+    console.error('Share failed:', error);
+    // Fallback на скачивание
+    downloadQRCode(qrUrl);
+  }
+};
+
   const reset = () => {
     setFormData({
       protocol: 'https://',
@@ -250,6 +298,28 @@ function App() {
                 Копировать
               </button>
             </details>
+            {result.qr_code && (
+              <div className="result-card qr-card">
+                <div className="result-label">QR-код</div>
+                <div className="qr-image-wrapper">
+                  <img src={result.qr_code} alt="QR Code" className="qr-image" />
+                </div>
+                <div className="result-actions">
+                  <button 
+                    className="btn-copy"
+                    onClick={() => downloadQRCode(result.qr_code)}
+                  >
+                    Сохранить
+                  </button>
+                  <button 
+                    className="btn-share"
+                    onClick={() => shareQRCode(result.qr_code)}
+                  >
+                    Отправить
+                  </button>
+                </div>
+              </div>
+)}
           </div>
         )}
       </div>
