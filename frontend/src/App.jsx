@@ -9,26 +9,18 @@ function App() {
     utm_source: '',
     utm_medium: '',
     utm_campaign: '',
-    utm_term: '',
-    utm_content: '',
   });
 
-  const [showTemplates, setShowTemplates] = useState(false);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [copied, setCopied] = useState(false);
 
-  // Инициализация Telegram WebApp
   useEffect(() => {
     if (window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp;
       tg.ready();
       tg.expand();
-      
-      document.documentElement.style.setProperty('--tg-theme-bg-color', tg.backgroundColor);
-      document.documentElement.style.setProperty('--tg-theme-text-color', tg.textColor);
-      document.documentElement.style.setProperty('--tg-theme-button-color', tg.buttonColor);
-      document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.buttonTextColor);
+      tg.enableClosingConfirmation();
     }
   }, []);
 
@@ -36,303 +28,213 @@ function App() {
     const { name, value } = e.target;
     
     if (name === 'original_url') {
-      // Удаляем протокол если пользователь его вставил
       const cleanValue = value.replace(/^https?:\/\//i, '');
-      setFormData(prev => ({
-        ...prev,
-        [name]: cleanValue
-      }));
+      setFormData(prev => ({ ...prev, [name]: cleanValue }));
       return;
     }
     
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const applyTemplate = (template) => {
-    setFormData(prev => ({
-      ...prev,
-      ...template.params
-    }));
-    setShowTemplates(false);
-    
+    setFormData(prev => ({ ...prev, ...template.params }));
     if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+      window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
     setResult(null);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 65000);
 
     try {
       const response = await fetch('https://yaron9361-blip-utm-backend-d48a.twc1.net/api/utm/generate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
           original_url: formData.original_url.startsWith('http') 
             ? formData.original_url 
             : formData.protocol + formData.original_url
         }),
-        signal: controller.signal
       });
-
-      clearTimeout(timeoutId);
 
       const data = await response.json();
 
       if (response.ok && data.success) {
         setResult(data.data);
-        setError(null);
-        
         if (window.Telegram?.WebApp) {
           window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
         }
-      } else {
-        throw new Error(data.error || 'Ошибка создания UTM-метки');
       }
     } catch (err) {
-      if (err.name === 'AbortError') {
-        setError('Превышено время ожидания. Попробуйте ещё раз.');
-      } else {
-        setError(err.message);
-      }
-      
       if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+        window.Telegram.WebApp.showAlert('Ошибка создания метки');
       }
     } finally {
-      clearTimeout(timeoutId);
       setLoading(false);
     }
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      
       if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.showPopup({
-          message: 'Скопировано!',
-        });
         window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-      } else {
-        alert('Скопировано!');
       }
     });
   };
 
-  const resetForm = () => {
+  const shareToTelegram = () => {
+    if (window.Telegram?.WebApp && result) {
+      const text = `Моя UTM-ссылка:\n${result.short_url}`;
+      window.Telegram.WebApp.shareMessage(text);
+    }
+  };
+
+  const reset = () => {
     setFormData({
       protocol: 'https://',
       original_url: '',
       utm_source: '',
       utm_medium: '',
       utm_campaign: '',
-      utm_term: '',
-      utm_content: '',
     });
     setResult(null);
-    setError(null);
   };
 
   return (
     <div className="app">
       <div className="container">
-        <header className="header">
-          <h1>⚡️ Быстрые UTM-метки</h1>
-          <p>Создай за 15 секунд</p>
-        </header>
-
-        {!result && (
-          <button 
-            type="button"
-            className="btn btn-templates"
-            onClick={() => setShowTemplates(!showTemplates)}
-          >
-            📋 {showTemplates ? 'Скрыть шаблоны' : 'Выбрать из шаблона'}
-          </button>
-        )}
-
-        {showTemplates && !result && (
-          <div className="templates-grid">
-            {utmTemplates.map(template => (
-              <div 
-                key={template.id}
-                className="template-card"
-                onClick={() => applyTemplate(template)}
-              >
-                <span className="template-icon">{template.icon}</span>
-                <span className="template-name">{template.name}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
+        
         {!result ? (
-          <form className="form" onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="original_url">Ссылка *</label>
-              <div className="url-input-wrapper">
-                <select 
+          <>
+            <div className="header">
+              <h1>Быстрые UTM-метки</h1>
+              <p>Шаблоны для популярных платформ</p>
+            </div>
+
+            <div className="templates">
+              {utmTemplates.slice(0, 6).map(t => (
+                <button 
+                  key={t.id}
+                  className="template-btn"
+                  onClick={() => applyTemplate(t)}
+                  type="button"
+                >
+                  <span className="template-icon">{t.icon}</span>
+                  <span className="template-text">{t.name}</span>
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit} className="form">
+              <div className="input-group">
+                <label>Ссылка</label>
+                <div className="url-input">
+                  <select 
                     name="protocol"
                     value={formData.protocol}
                     onChange={handleInputChange}
-                    className="protocol-select"
                   >
                     <option value="https://">https://</option>
                     <option value="http://">http://</option>
                   </select>
+                  <input
+                    type="text"
+                    name="original_url"
+                    value={formData.original_url}
+                    onChange={handleInputChange}
+                    placeholder="your-site.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label>Источник <span className="hint">откуда пришли</span></label>
                 <input
                   type="text"
-                  id="original_url"
-                  name="original_url"
-                  value={formData.original_url}
+                  name="utm_source"
+                  value={formData.utm_source}
                   onChange={handleInputChange}
-                  placeholder="your-site.com/promo"
+                  placeholder="telegram"
                   required
                 />
               </div>
-            </div>
 
-            <div className="form-group">
-              <label htmlFor="utm_source">Source (откуда) *</label>
-              <input
-                type="text"
-                id="utm_source"
-                name="utm_source"
-                value={formData.utm_source}
-                onChange={handleInputChange}
-                placeholder="telegram, instagram, vk"
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="utm_medium">Medium (тип) *</label>
-              <input
-                type="text"
-                id="utm_medium"
-                name="utm_medium"
-                value={formData.utm_medium}
-                onChange={handleInputChange}
-                placeholder="stories, post, ad"
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="utm_campaign">Campaign (кампания) *</label>
-              <input
-                type="text"
-                id="utm_campaign"
-                name="utm_campaign"
-                value={formData.utm_campaign}
-                onChange={handleInputChange}
-                placeholder="black_friday, new_product"
-                required
-              />
-            </div>
-
-            <details className="additional">
-              <summary>Дополнительные параметры</summary>
-              
-              <div className="form-group">
-                <label htmlFor="utm_term">Term (ключевое слово)</label>
+              <div className="input-group">
+                <label>Тип <span className="hint">канал трафика</span></label>
                 <input
                   type="text"
-                  id="utm_term"
-                  name="utm_term"
-                  value={formData.utm_term}
+                  name="utm_medium"
+                  value={formData.utm_medium}
                   onChange={handleInputChange}
-                  placeholder="running+shoes"
+                  placeholder="social"
+                  required
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="utm_content">Content (вариант)</label>
+              <div className="input-group">
+                <label>Кампания <span className="hint">название акции</span></label>
                 <input
                   type="text"
-                  id="utm_content"
-                  name="utm_content"
-                  value={formData.utm_content}
+                  name="utm_campaign"
+                  value={formData.utm_campaign}
                   onChange={handleInputChange}
-                  placeholder="banner_v1"
+                  placeholder="black_friday"
+                  required
                 />
               </div>
-            </details>
 
-            {error && (
-              <div className="error">
-                {error}
-              </div>
-            )}
-
-            <button 
-              type="submit" 
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {loading ? 'Создаём...' : 'Создать UTM-метку'}
-            </button>
-          </form>
+              <button 
+                type="submit" 
+                className="btn-primary"
+                disabled={loading}
+              >
+                {loading ? 'Создаём...' : 'Создать метку'}
+              </button>
+            </form>
+          </>
         ) : (
           <div className="result">
             <div className="result-header">
-              <h2>✅ Метка создана!</h2>
+              <h2>Готово</h2>
+              <button className="btn-reset" onClick={reset}>Создать ещё</button>
             </div>
 
-            <div className="result-item">
-              <label>Полная ссылка</label>
-              <div className="result-value">
-                <code>{result.full_url}</code>
+            <div className="result-card">
+              <div className="result-label">Короткая ссылка</div>
+              <div className="result-url">{result.short_url}</div>
+              <div className="result-actions">
                 <button 
-                  className="btn btn-copy"
-                  onClick={() => copyToClipboard(result.full_url)}
-                >
-                  Копировать
-                </button>
-              </div>
-            </div>
-
-            <div className="result-item">
-              <label>Короткая ссылка</label>
-              <div className="result-value">
-                <code>{result.short_url}</code>
-                <button 
-                  className="btn btn-copy"
+                  className="btn-copy"
                   onClick={() => copyToClipboard(result.short_url)}
                 >
-                  Копировать
+                  {copied ? '✓ Скопировано' : 'Копировать'}
+                </button>
+                <button 
+                  className="btn-share"
+                  onClick={shareToTelegram}
+                >
+                  Отправить
                 </button>
               </div>
             </div>
 
-            {result.qr_code && (
-              <div className="result-item">
-                <label>QR-код</label>
-                <div className="qr-code">
-                  <img src={result.qr_code} alt="QR Code" />
-                </div>
-              </div>
-            )}
-
-            <div className="result-actions">
+            <details className="result-details">
+              <summary>Полная ссылка</summary>
+              <div className="result-full">{result.full_url}</div>
               <button 
-                className="btn btn-secondary"
-                onClick={resetForm}
+                className="btn-copy-small"
+                onClick={() => copyToClipboard(result.full_url)}
               >
-                Создать ещё
+                Копировать
               </button>
-            </div>
+            </details>
           </div>
         )}
       </div>
