@@ -110,77 +110,130 @@ function App() {
     }
   };
 
-  const downloadQRCode = async (qrUrl) => {
+const downloadQRCode = async (qrUrl) => {
   try {
-    // Загружаем изображение через fetch
-    const response = await fetch(qrUrl);
-    const blob = await response.blob();
+    // Создаём canvas и рисуем изображение
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
     
-    // Создаём Object URL
-    const blobUrl = URL.createObjectURL(blob);
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = qrUrl;
+    });
     
-    // Создаём временную ссылку для скачивания
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = `utm-qrcode-${Date.now()}.png`;
-    link.style.display = 'none';
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
     
-    document.body.appendChild(link);
-    link.click();
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
     
-    // Очистка
-    setTimeout(() => {
-      document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl);
-    }, 100);
+    // Конвертируем в blob
+    canvas.toBlob(async (blob) => {
+      // Telegram WebApp специфичная логика
+      if (window.Telegram?.WebApp) {
+        // Пробуем использовать downloadFile если доступен
+        const blobUrl = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `utm-qr-${Date.now()}.png`;
+        
+        // Для мобильных - trigger через user interaction
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        
+        window.Telegram.WebApp.showPopup({
+          message: 'QR-код сохранён. Проверьте загрузки или галерею.'
+        });
+        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+      } else {
+        // Для обычного браузера
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `utm-qr-${Date.now()}.png`;
+        link.click();
+        URL.revokeObjectURL(blobUrl);
+      }
+    }, 'image/png');
     
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-      window.Telegram.WebApp.showPopup({
-        message: 'QR-код сохранён в загрузки'
-      });
-    }
   } catch (error) {
     console.error('Download failed:', error);
     if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.showAlert('Ошибка сохранения QR-кода');
+      window.Telegram.WebApp.showAlert('Не удалось сохранить. Сделайте скриншот QR-кода.');
     }
   }
 };
 
 const shareQRCode = async (qrUrl) => {
   try {
-    // Загружаем изображение
-    const response = await fetch(qrUrl);
-    const blob = await response.blob();
+    // Создаём изображение через canvas
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = qrUrl;
+    });
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    
+    // Конвертируем в blob
+    const blob = await new Promise(resolve => {
+      canvas.toBlob(resolve, 'image/png');
+    });
+    
     const file = new File([blob], 'utm-qrcode.png', { type: 'image/png' });
     
-    // Проверяем поддержку Web Share API
-    if (navigator.share && navigator.canShare({ files: [file] })) {
+    // Проверяем Web Share API
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({
         files: [file],
-        title: 'UTM QR-код',
-        text: 'Сканируй QR-код для перехода по ссылке'
+        title: 'UTM QR-код'
       });
       
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
       }
     } else {
-      // Fallback - сохраняем и показываем уведомление
-      await downloadQRCode(qrUrl);
-    }
-  } catch (error) {
-    // Если пользователь отменил отправку - не ошибка
-    if (error.name !== 'AbortError') {
-      console.error('Share failed:', error);
-      
+      // Fallback - показываем сообщение и сохраняем
       if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.showAlert('Не удалось отправить. QR-код будет сохранён.');
+        window.Telegram.WebApp.showPopup({
+          message: 'Отправка недоступна. QR-код будет сохранён - отправьте его из галереи.',
+          buttons: [{type: 'ok'}]
+        });
       }
       
       await downloadQRCode(qrUrl);
     }
+    
+  } catch (error) {
+    // AbortError = пользователь отменил
+    if (error.name === 'AbortError') {
+      return;
+    }
+    
+    console.error('Share failed:', error);
+    
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.showPopup({
+        message: 'Не удалось отправить. QR-код будет сохранён.',
+        buttons: [{type: 'ok'}]
+      });
+    }
+    
+    await downloadQRCode(qrUrl);
   }
 };
 
