@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import './App.css';
 import { utmTemplates } from './utmTemplates';
+import { trackEvent, initAnalytics } from './utils/analytics';
 
 function App() {
   const [formData, setFormData] = useState({
@@ -22,6 +23,9 @@ function App() {
       tg.expand();
       tg.enableClosingConfirmation();
     }
+    
+    // Инициализируем аналитику
+    initAnalytics();
   }, []);
 
   const handleInputChange = (e) => {
@@ -51,6 +55,13 @@ function App() {
 
   const applyTemplate = (template) => {
     setFormData(prev => ({ ...prev, ...template.params }));
+    
+    // Трекаем выбор шаблона
+    trackEvent('template_selected', { 
+      template_id: template.id,
+      platform: template.category 
+    });
+    
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
     }
@@ -77,6 +88,14 @@ function App() {
 
       if (response.ok && data.success) {
         setResult(data.data);
+        
+        // Трекаем успешное создание
+        trackEvent('utm_generated', {
+          source: formData.utm_source,
+          medium: formData.utm_medium,
+          campaign: formData.utm_campaign
+        });
+        
         if (window.Telegram?.WebApp) {
           window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
         }
@@ -94,6 +113,10 @@ function App() {
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      
+      // Определяем тип ссылки
+      const linkType = text === result?.short_url ? 'short' : 'full';
+      trackEvent('link_copied', { link_type: linkType });
       
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
