@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import { utmTemplates } from './utmTemplates';
 import { trackEvent, initAnalytics } from './utils/analytics';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
 
 function App() {
   const [formData, setFormData] = useState({
@@ -250,6 +251,10 @@ function App() {
     });
     setResult(null);
   };
+
+  if (window.location.hash === '#analytics') {
+    return <AnalyticsDashboard />;
+  }
 
   return (
     <div className="app">
