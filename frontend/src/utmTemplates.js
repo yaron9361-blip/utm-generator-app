@@ -1,8 +1,14 @@
+import telegramIcon from './assets/icons/telegram.svg';
+import vkIcon from './assets/icons/vk.svg';
+import instagramIcon from './assets/icons/instagram.svg';
+import yandexIcon from './assets/icons/yandex.svg';
+import googleIcon from './assets/icons/google.svg';
+
 export const utmTemplates = [
   {
     id: 'telegram_post',
-    name: 'Пост в канале',
-    logo: 'data:image/svg+xml,%3Csvg width="40" height="40" xmlns="http://www.w3.org/2000/svg"%3E%3Crect fill="%2326a5e4" width="40" height="40" rx="8"/%3E%3C/svg%3E',
+    name: 'Пост',
+    logo: telegramIcon,
     category: 'Telegram',
     params: {
       utm_source: 'telegram',
@@ -13,7 +19,7 @@ export const utmTemplates = [
   {
     id: 'telegram_stories',
     name: 'Stories',
-    logo: 'data:image/svg+xml,%3Csvg width="40" height="40" xmlns="http://www.w3.org/2000/svg"%3E%3Crect fill="%2326a5e4" width="40" height="40" rx="8"/%3E%3C/svg%3E',
+    logo: telegramIcon,
     category: 'Telegram',
     params: {
       utm_source: 'telegram',
@@ -24,7 +30,7 @@ export const utmTemplates = [
   {
     id: 'vk_post',
     name: 'Пост',
-    logo: 'data:image/svg+xml,%3Csvg width="40" height="40" xmlns="http://www.w3.org/2000/svg"%3E%3Crect fill="%230077ff" width="40" height="40" rx="8"/%3E%3C/svg%3E',
+    logo: vkIcon,
     category: 'VKontakte',
     params: {
       utm_source: 'vk',
@@ -35,7 +41,7 @@ export const utmTemplates = [
   {
     id: 'vk_ads',
     name: 'Реклама',
-    logo: 'data:image/svg+xml,%3Csvg width="40" height="40" xmlns="http://www.w3.org/2000/svg"%3E%3Crect fill="%230077ff" width="40" height="40" rx="8"/%3E%3C/svg%3E',
+    logo: vkIcon,
     category: 'VKontakte',
     params: {
       utm_source: 'vk',
@@ -46,7 +52,7 @@ export const utmTemplates = [
   {
     id: 'instagram_post',
     name: 'Пост',
-    logo: 'data:image/svg+xml,%3Csvg width="40" height="40" xmlns="http://www.w3.org/2000/svg"%3E%3Crect fill="%23E4405F" width="40" height="40" rx="8"/%3E%3C/svg%3E',
+    logo: instagramIcon,
     category: 'Instagram',
     params: {
       utm_source: 'instagram',
@@ -57,7 +63,7 @@ export const utmTemplates = [
   {
     id: 'instagram_stories',
     name: 'Stories',
-    logo: 'data:image/svg+xml,%3Csvg width="40" height="40" xmlns="http://www.w3.org/2000/svg"%3E%3Crect fill="%23E4405F" width="40" height="40" rx="8"/%3E%3C/svg%3E',
+    logo: instagramIcon,
     category: 'Instagram',
     params: {
       utm_source: 'instagram',
@@ -67,8 +73,8 @@ export const utmTemplates = [
   },
   {
     id: 'yandex_direct',
-    name: 'Контекстная реклама',
-    logo: 'data:image/svg+xml,%3Csvg width="40" height="40" xmlns="http://www.w3.org/2000/svg"%3E%3Crect fill="%23FC3F1D" width="40" height="40" rx="8"/%3E%3C/svg%3E',
+    name: 'Реклама',
+    logo: yandexIcon,
     category: 'Яндекс.Директ',
     params: {
       utm_source: 'yandex',
@@ -78,8 +84,8 @@ export const utmTemplates = [
   },
   {
     id: 'google_ads',
-    name: 'Контекстная реклама',
-    logo: 'data:image/svg+xml,%3Csvg width="40" height="40" xmlns="http://www.w3.org/2000/svg"%3E%3Crect fill="%234285F4" width="40" height="40" rx="8"/%3E%3C/svg%3E',
+    name: 'Реклама',
+    logo: googleIcon,
     category: 'Google Ads',
     params: {
       utm_source: 'google',
