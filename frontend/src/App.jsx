@@ -236,26 +236,7 @@ function App() {
           <>
             <div className="header">
               <h1>Быстрые UTM-метки</h1>
-              <p>Шаблоны для популярных платформ</p>
-            </div>
-
-            <div className="templates-container">
-              <div className="templates-scroll">
-                {utmTemplates.map(t => (
-                  <button 
-                    key={t.id}
-                    className="template-card-large"
-                    onClick={() => applyTemplate(t)}
-                    type="button"
-                  >
-                    <div className="template-icon-large">{t.icon}</div>
-                    <div className="template-info">
-                      <div className="template-platform">{t.category}</div>
-                      <div className="template-format">{t.name}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
+              <p>Создай за 15 секунд</p>
             </div>
 
             <form onSubmit={handleSubmit} className="form">
@@ -316,6 +297,25 @@ function App() {
                   required
                 />
               </div>
+
+              <div className="templates-container">
+              <div className="templates-scroll">
+                {utmTemplates.map(t => (
+                  <button 
+                    key={t.id}
+                    className="template-card-large"
+                    onClick={() => applyTemplate(t)}
+                    type="button"
+                  >
+                    <div className="template-icon-large">{t.icon}</div>
+                    <div className="template-info">
+                      <div className="template-platform">{t.category}</div>
+                      <div className="template-format">{t.name}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
 
               <button 
                 type="submit" 

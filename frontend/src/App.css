@@ -62,7 +62,7 @@ body {
 }
 
 .templates-container {
-  margin-bottom: 24px;
+  margin: 20px 0;
   overflow: hidden;
 }
 
@@ -82,15 +82,15 @@ body {
 }
 
 .template-card-large {
-  flex: 0 0 160px;
+  flex: 0 0 130px;
   background: linear-gradient(135deg, var(--surface) 0%, var(--border) 100%);
   border: 2px solid var(--border);
   border-radius: 16px;
-  padding: 16px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
   transition: all 0.2s;
   scroll-snap-align: start;
@@ -106,22 +106,30 @@ body {
   line-height: 1;
 }
 
+.template-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
 .template-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   align-items: flex-start;
+  width: 100%;
 }
 
 .template-platform {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text);
   line-height: 1.2;
 }
 
 .template-format {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
   line-height: 1.2;
