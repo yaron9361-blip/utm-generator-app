@@ -157,6 +157,9 @@ function App() {
           
           setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
           
+          // Трекаем сохранение QR
+          trackEvent('qr_saved');
+          
           window.Telegram.WebApp.showPopup({
             message: 'QR-код сохранён. Проверьте загрузки или галерею.'
           });
@@ -168,6 +171,8 @@ function App() {
           link.download = `utm-qr-${Date.now()}.png`;
           link.click();
           URL.revokeObjectURL(blobUrl);
+          
+          trackEvent('qr_saved');
         }
       }, 'image/png');
       
@@ -242,6 +247,8 @@ function App() {
   };
 
   const reset = () => {
+    trackEvent('create_another_clicked');
+    
     setFormData({
       protocol: 'https://',
       original_url: '',

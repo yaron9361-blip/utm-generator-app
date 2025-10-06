@@ -82,6 +82,56 @@ function AnalyticsDashboard() {
         </div>
       </div>
 
+      {/* Воронка конверсии */}
+      <div className="section">
+        <h2>Воронка конверсии</h2>
+        <div className="funnel">
+          {(() => {
+            const opened = stats?.events_by_type?.app_opened || 0;
+            const templatesSelected = stats?.events_by_type?.template_selected || 0;
+            const generated = stats?.events_by_type?.utm_generated || 0;
+            const copied = stats?.events_by_type?.link_copied || 0;
+            
+            const openToGenerate = opened > 0 ? ((generated / opened) * 100).toFixed(1) : 0;
+            const generateToCopy = generated > 0 ? ((copied / generated) * 100).toFixed(1) : 0;
+            
+            return (
+              <>
+                <div className="funnel-step">
+                  <div className="funnel-bar" style={{ width: '100%' }}>
+                    <span className="funnel-label">Открыли приложение</span>
+                    <span className="funnel-value">{opened}</span>
+                  </div>
+                </div>
+                
+                <div className="funnel-step">
+                  <div className="funnel-bar" style={{ width: `${Math.min((templatesSelected / opened) * 100, 100)}%` }}>
+                    <span className="funnel-label">Выбрали шаблон</span>
+                    <span className="funnel-value">{templatesSelected}</span>
+                  </div>
+                </div>
+                
+                <div className="funnel-step">
+                  <div className="funnel-bar" style={{ width: `${Math.min((generated / opened) * 100, 100)}%` }}>
+                    <span className="funnel-label">Создали метку</span>
+                    <span className="funnel-value">{generated}</span>
+                  </div>
+                  <div className="funnel-conversion">Конверсия: {openToGenerate}%</div>
+                </div>
+                
+                <div className="funnel-step">
+                  <div className="funnel-bar" style={{ width: `${Math.min((copied / opened) * 100, 100)}%` }}>
+                    <span className="funnel-label">Скопировали ссылку</span>
+                    <span className="funnel-value">{copied}</span>
+                  </div>
+                  <div className="funnel-conversion">Конверсия от создания: {generateToCopy}%</div>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      </div>
+
       {/* Последние события */}
       <div className="section">
         <h2>Последние события</h2>
