@@ -94,6 +94,12 @@ body {
   cursor: pointer;
   transition: all 0.2s;
   scroll-snap-align: start;
+  
+  /* Отключаем синий highlight */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .template-card-large:active {
