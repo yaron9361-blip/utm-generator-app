@@ -1,8 +1,8 @@
-import telegramIcon from './assets/icons/telegram.svg';
-import vkIcon from './assets/icons/vk.svg';
-import instagramIcon from './assets/icons/instagram.svg';
-import yandexIcon from './assets/icons/yandex.svg';
-import googleIcon from './assets/icons/google.svg';
+import telegramIcon from '/src/assets/icons/telegram.svg';
+import vkIcon from '/src/assets/icons/vk.svg';
+import instagramIcon from '/src/assets/icons/instagram.svg';
+import yandexIcon from '/src/assets/icons/yandex.svg';
+import googleIcon from '/src/assets/icons/google.svg';
 
 export const utmTemplates = [
   {
