@@ -5,26 +5,31 @@ const BACKEND_URL = 'https://yaron9361-blip-utm-backend-d48a.twc1.net';
 
 function AnalyticsDashboard() {
   const [stats, setStats] = useState(null);
+  const [funnel, setFunnel] = useState(null);
   const [recentEvents, setRecentEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [funnelGroupBy, setFunnelGroupBy] = useState('sessions'); // sessions или users
 
   useEffect(() => {
     loadAnalytics();
-    const interval = setInterval(loadAnalytics, 30000); // Обновляем каждые 30 сек
+    const interval = setInterval(loadAnalytics, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [funnelGroupBy]);
 
   const loadAnalytics = async () => {
     try {
-      const [statsRes, eventsRes] = await Promise.all([
+      const [statsRes, funnelRes, eventsRes] = await Promise.all([
         fetch(`${BACKEND_URL}/api/analytics/stats`),
+        fetch(`${BACKEND_URL}/api/analytics/funnel?group_by=${funnelGroupBy}`),
         fetch(`${BACKEND_URL}/api/analytics/recent?limit=20`)
       ]);
 
       const statsData = await statsRes.json();
+      const funnelData = await funnelRes.json();
       const eventsData = await eventsRes.json();
 
       if (statsData.success) setStats(statsData.stats);
+      if (funnelData.success) setFunnel(funnelData.funnel);
       if (eventsData.success) setRecentEvents(eventsData.events);
       setLoading(false);
     } catch (error) {
@@ -69,66 +74,86 @@ function AnalyticsDashboard() {
         </div>
       </div>
 
+      {/* Воронка конверсии с переключателем */}
+      <div className="section">
+        <div className="section-header">
+          <h2>Воронка конверсии</h2>
+          <div className="funnel-toggle">
+            <button 
+              className={`toggle-btn ${funnelGroupBy === 'sessions' ? 'active' : ''}`}
+              onClick={() => setFunnelGroupBy('sessions')}
+            >
+              По сессиям
+            </button>
+            <button 
+              className={`toggle-btn ${funnelGroupBy === 'users' ? 'active' : ''}`}
+              onClick={() => setFunnelGroupBy('users')}
+            >
+              По юзерам
+            </button>
+          </div>
+        </div>
+
+        {funnel && (
+          <div className="funnel">
+            <div className="funnel-step">
+              <div className="funnel-bar" style={{ width: '100%' }}>
+                <span className="funnel-label">Открыли приложение</span>
+                <span className="funnel-value">{funnel.opened}</span>
+              </div>
+            </div>
+            
+            <div className="funnel-step">
+              <div className="funnel-bar" style={{ 
+                width: `${Math.max((funnel.template_selected / funnel.opened) * 100, 15)}%`,
+                background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
+              }}>
+                <span className="funnel-label">Выбрали шаблон</span>
+                <span className="funnel-value">{funnel.template_selected}</span>
+              </div>
+            </div>
+            
+            <div className="funnel-step">
+              <div className="funnel-bar" style={{ 
+                width: `${Math.max((funnel.generated / funnel.opened) * 100, 15)}%`,
+                background: 'linear-gradient(90deg, #f093fb 0%, #f5576c 100%)'
+              }}>
+                <span className="funnel-label">Создали метку</span>
+                <span className="funnel-value">{funnel.generated}</span>
+              </div>
+              <div className="funnel-conversion">
+                Конверсия от открытия: {funnel.conversion_to_generated}%
+              </div>
+            </div>
+            
+            <div className="funnel-step">
+              <div className="funnel-bar" style={{ 
+                width: `${Math.max((funnel.copied / funnel.opened) * 100, 15)}%`,
+                background: 'linear-gradient(90deg, #4facfe 0%, #00f2fe 100%)'
+              }}>
+                <span className="funnel-label">Скопировали ссылку</span>
+                <span className="funnel-value">{funnel.copied}</span>
+              </div>
+              <div className="funnel-conversion">
+                Конверсия от создания: {funnel.conversion_to_copied}%
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* События по типам */}
       <div className="section">
         <h2>События по типам</h2>
         <div className="events-types">
-          {stats?.events_by_type && Object.entries(stats.events_by_type).map(([type, count]) => (
-            <div key={type} className="event-type-row">
-              <span className="event-type-name">{type}</span>
-              <span className="event-type-count">{count}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Воронка конверсии */}
-      <div className="section">
-        <h2>Воронка конверсии</h2>
-        <div className="funnel">
-          {(() => {
-            const opened = stats?.events_by_type?.app_opened || 0;
-            const templatesSelected = stats?.events_by_type?.template_selected || 0;
-            const generated = stats?.events_by_type?.utm_generated || 0;
-            const copied = stats?.events_by_type?.link_copied || 0;
-            
-            const openToGenerate = opened > 0 ? ((generated / opened) * 100).toFixed(1) : 0;
-            const generateToCopy = generated > 0 ? ((copied / generated) * 100).toFixed(1) : 0;
-            
-            return (
-              <>
-                <div className="funnel-step">
-                  <div className="funnel-bar" style={{ width: '100%' }}>
-                    <span className="funnel-label">Открыли приложение</span>
-                    <span className="funnel-value">{opened}</span>
-                  </div>
-                </div>
-                
-                <div className="funnel-step">
-                  <div className="funnel-bar" style={{ width: `${Math.min((templatesSelected / opened) * 100, 100)}%` }}>
-                    <span className="funnel-label">Выбрали шаблон</span>
-                    <span className="funnel-value">{templatesSelected}</span>
-                  </div>
-                </div>
-                
-                <div className="funnel-step">
-                  <div className="funnel-bar" style={{ width: `${Math.min((generated / opened) * 100, 100)}%` }}>
-                    <span className="funnel-label">Создали метку</span>
-                    <span className="funnel-value">{generated}</span>
-                  </div>
-                  <div className="funnel-conversion">Конверсия: {openToGenerate}%</div>
-                </div>
-                
-                <div className="funnel-step">
-                  <div className="funnel-bar" style={{ width: `${Math.min((copied / opened) * 100, 100)}%` }}>
-                    <span className="funnel-label">Скопировали ссылку</span>
-                    <span className="funnel-value">{copied}</span>
-                  </div>
-                  <div className="funnel-conversion">Конверсия от создания: {generateToCopy}%</div>
-                </div>
-              </>
-            );
-          })()}
+          {stats?.events_by_type && Object.entries(stats.events_by_type)
+            .sort((a, b) => b[1] - a[1])
+            .map(([type, count]) => (
+              <div key={type} className="event-type-row">
+                <span className="event-type-name">{type}</span>
+                <span className="event-type-count">{count}</span>
+              </div>
+            ))}
         </div>
       </div>
 
