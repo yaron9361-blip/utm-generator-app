@@ -307,11 +307,8 @@ function App() {
                     onClick={() => applyTemplate(t)}
                     type="button"
                   >
-                    <div className="template-icon-large">{t.icon}</div>
-                    <div className="template-info">
-                      <div className="template-platform">{t.category}</div>
-                      <div className="template-format">{t.name}</div>
-                    </div>
+                    <img src={t.logo} alt={t.category} className="template-logo" />
+                    <div className="template-name">{t.name}</div>
                   </button>
                 ))}
               </div>
